@@ -627,7 +627,7 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, doc, setDoc, updateDoc, onSnapshot, deleteField } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, doc, setDoc, updateDoc, onSnapshot, deleteField, setLogLevel } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 // ---------------------------------------------------------------
@@ -646,6 +646,7 @@ var firebaseConfig = {
 };
 var firebaseApp = initializeApp(firebaseConfig);
 var firestoreDb = getFirestore(firebaseApp);
+setLogLevel('debug'); // TEMPORARY: remove once the connection issue is diagnosed
 var firebaseAuth = getAuth(firebaseApp);
 
 (function () {
@@ -819,22 +820,31 @@ var firebaseAuth = getAuth(firebaseApp);
   // ---------------- DB wiring ----------------
   function boot() {
     render();
-    var authTimer = setTimeout(function () {
-      if (!docRef) { dbUnavailable = true; render(); }
-    }, 10000);
-    signInAnonymously(firebaseAuth).catch(function () {
-      clearTimeout(authTimer);
+    // Watchdog on whether the FIRST snapshot ever arrives (not just whether
+    // auth succeeded) — a Firestore listen can open its channel and then
+    // never deliver data, and nothing used to catch that case.
+    var dataTimer = setTimeout(function () {
+      if (loaded) return;
+      console.error('[board] no Firestore snapshot after 15s. docRef=', !!docRef,
+        'uid=', firebaseAuth.currentUser && firebaseAuth.currentUser.uid);
+      dbUnavailable = true; render();
+    }, 15000);
+    signInAnonymously(firebaseAuth).catch(function (err) {
+      console.error('[board] signInAnonymously failed:', err && err.code, err);
+      clearTimeout(dataTimer);
       dbUnavailable = true; loaded = true; render();
     });
     onAuthStateChanged(firebaseAuth, function (user) {
+      console.log('[board] onAuthStateChanged uid=', user && user.uid);
       if (!user) return;
       if (docRef) return; // already booted for this page load
-      clearTimeout(authTimer);
       dbUnavailable = false;
       dbHandle = firestoreDb;
       docRef = doc(firestoreDb, 'board/week1');
       authReadyResolve();
       onSnapshot(docRef, function (snap) {
+        clearTimeout(dataTimer);
+        console.log('[board] snapshot exists=', snap.exists(), 'fromCache=', snap.metadata && snap.metadata.fromCache);
         loaded = true;
         disconnected = false;
         if (snap.exists()) {
@@ -874,6 +884,8 @@ var firebaseAuth = getAuth(firebaseApp);
         }
         render();
       }, function (err) {
+        clearTimeout(dataTimer);
+        console.error('[board] onSnapshot error:', err && err.code, err);
         if (!loaded) { dbUnavailable = true; } else { disconnected = true; }
         render();
       });
