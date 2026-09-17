@@ -343,6 +343,31 @@
   .supervisor-branch .swatch { width: 18px; height: 18px; }
   .supervisor-branch .crew-input { font-size: var(--text-sm); }
 
+  /* ---------- lead row: general superintendent + datetime, side by side ---------- */
+  .lead-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 14px;
+  }
+  .lead-row .crew-lead-card { flex: 1 1 320px; width: auto; }
+  .lead-row .datetime-bar { flex: 1 1 260px; margin: 0; }
+
+  /* ---------- slab manager + plumbing foreman, left-aligned under supervisors ---------- */
+  .crew-left-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-left: 14px;
+    padding-left: 16px;
+    border-left: 3px solid var(--color-border-strong);
+  }
+  .crew-left-row .supervisor-branch { flex: 0 1 300px; }
+
+  /* ---------- installer: own full-width line under everyone ---------- */
+  .installer-row { flex: 0 0 auto; width: 100%; }
+  .installer-row .crew-card { width: 100%; }
+
   /* ---------- job foremen ---------- */
   .foreman-column {
     margin-left: 12px;
@@ -650,18 +675,20 @@
 
   <div id="statusBanner" class="status-banner status-info" role="status" aria-live="polite" hidden></div>
 
-  <div class="datetime-bar">
-    <span class="datetime-date" id="datetimeDate"></span>
-    <span class="datetime-clock" id="datetimeClock"></span>
-  </div>
-
   <main class="content" style="display:flex; flex-direction:column; gap:18px;">
     <section class="crew" aria-label="Field chain of command">
-      <div class="crew-card crew-lead-card">
+      <div class="lead-row">
+        <div class="crew-card crew-lead-card">
         <span class="swatch swatch-sup1" aria-hidden="true"></span>
         <div class="crew-field">
           <label class="field-label" for="sup1Input">General Superintendent</label>
           <input id="sup1Input" class="crew-input" type="text" maxlength="40" autocomplete="off" />
+        </div>
+      </div>
+
+        <div class="datetime-bar">
+          <span class="datetime-date" id="datetimeDate"></span>
+          <span class="datetime-clock" id="datetimeClock"></span>
         </div>
       </div>
 
@@ -714,7 +741,9 @@
             <button type="button" id="scheduleToggle-sup7" class="schedule-toggle-btn">Schedule</button>
           </div>
         </div>
+      </div>
 
+      <div class="crew-left-row">
         <div class="supervisor-branch">
           <div class="crew-card">
             <span class="swatch swatch-sup4" aria-hidden="true"></span>
@@ -735,7 +764,6 @@
           </div>
         </div>
 
-        <div class="branch-stack">
           <div class="supervisor-branch">
             <div class="crew-card">
               <span class="swatch swatch-sup5" aria-hidden="true"></span>
@@ -746,16 +774,16 @@
               <button type="button" id="scheduleToggle-sup5" class="schedule-toggle-btn">Schedule</button>
             </div>
           </div>
-          <div class="supervisor-branch">
-            <div class="crew-card">
-              <span class="swatch swatch-sup6" aria-hidden="true"></span>
-              <div class="crew-field">
-                <label class="field-label" for="sup6Input">Installer</label>
-                <input id="sup6Input" class="crew-input" type="text" maxlength="40" autocomplete="off" />
-              </div>
-              <button type="button" id="scheduleToggle-sup6" class="schedule-toggle-btn">Schedule</button>
-            </div>
+      </div>
+
+      <div class="supervisor-branch installer-row">
+        <div class="crew-card">
+          <span class="swatch swatch-sup6" aria-hidden="true"></span>
+          <div class="crew-field">
+            <label class="field-label" for="sup6Input">Installer</label>
+            <input id="sup6Input" class="crew-input" type="text" maxlength="40" autocomplete="off" />
           </div>
+          <button type="button" id="scheduleToggle-sup6" class="schedule-toggle-btn">Schedule</button>
         </div>
       </div>
     </section>
