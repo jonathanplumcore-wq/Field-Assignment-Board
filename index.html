@@ -364,8 +364,8 @@
   }
   .crew-left-row .supervisor-branch { flex: 0 1 300px; }
 
-  /* ---------- installer: own full-width line under everyone ---------- */
-  .installer-row { flex: 0 0 auto; width: 100%; }
+  /* ---------- installer: matches the width of the slab manager + plumbing foreman row above it ---------- */
+  .installer-row { flex: 0 0 auto; width: 614px; max-width: 100%; margin-left: 14px; padding-left: 16px; }
   .installer-row .crew-card { width: 100%; }
 
   /* ---------- job foremen ---------- */
@@ -748,19 +748,10 @@
           <div class="crew-card">
             <span class="swatch swatch-sup4" aria-hidden="true"></span>
             <div class="crew-field">
-              <label class="field-label" for="sup4Input">Slab Manager</label>
+              <label class="field-label" for="sup4Input">Layout Manager</label>
               <input id="sup4Input" class="crew-input" type="text" maxlength="40" autocomplete="off" />
             </div>
             <button type="button" id="scheduleToggle-sup4" class="schedule-toggle-btn">Schedule</button>
-          </div>
-          <div class="foreman-column" data-sup="sup4">
-            <span class="field-label">Job Foremen</span>
-            <div id="foremanList-sup4" class="foreman-list"></div>
-            <form id="addForemanForm-sup4" class="add-foreman-form">
-              <input type="text" id="foremanInput-sup4" maxlength="40" autocomplete="off" placeholder="Add a job foreman" />
-              <button type="button" id="addForemanBtn-sup4" class="btn btn-sm btn-primary">Add</button>
-              <p class="field-error" id="foremanError-sup4" hidden></p>
-            </form>
           </div>
         </div>
 
@@ -832,22 +823,22 @@ var firebaseAuth = getAuth(firebaseApp);
 (function () {
   'use strict';
 
-  var SUP_KEYS = ['sup2', 'sup3', 'sup4'];
-  var SUP_FALLBACK = { sup1Name: 'General Superintendent', sup2Name: 'Supervisor 1', sup3Name: 'Supervisor 2', sup4Name: 'Slab Manager', sup5Name: 'Plumbing Foreman', sup6Name: 'Installer', sup7Name: 'Charlie Cheetum' };
+  var SUP_KEYS = ['sup2', 'sup3'];
+  var SUP_FALLBACK = { sup1Name: 'General Superintendent', sup2Name: 'Supervisor 1', sup3Name: 'Supervisor 2', sup4Name: 'Layout Manager', sup5Name: 'Plumbing Foreman', sup6Name: 'Installer', sup7Name: 'Charlie Cheetum' };
 
   var state = {
     sup1Name: 'General Superintendent',
     sup2Name: 'Supervisor 1',
     sup3Name: 'Supervisor 2',
-    sup4Name: 'Slab Manager',
+    sup4Name: 'Layout Manager',
     sup5Name: 'Plumbing Foreman',
     sup6Name: 'Installer',
     sup7Name: 'Charlie Cheetum',
-    foremen: { sup2: [], sup3: [], sup4: [] }
+    foremen: { sup2: [], sup3: [] }
   };
   // Last server-confirmed supervisor names, used to roll back a name
   // edit locally if the write turns out not to be permitted.
-  var confirmedNames = { sup1Name: 'General Superintendent', sup2Name: 'Supervisor 1', sup3Name: 'Supervisor 2', sup4Name: 'Slab Manager', sup5Name: 'Plumbing Foreman', sup6Name: 'Installer', sup7Name: 'Charlie Cheetum' };
+  var confirmedNames = { sup1Name: 'General Superintendent', sup2Name: 'Supervisor 1', sup3Name: 'Supervisor 2', sup4Name: 'Layout Manager', sup5Name: 'Plumbing Foreman', sup6Name: 'Installer', sup7Name: 'Charlie Cheetum' };
 
   var docRef = null;
   var loaded = false;
@@ -907,7 +898,7 @@ var firebaseAuth = getAuth(firebaseApp);
   }
 
   function cloneForemen(f) {
-    return { sup2: (f.sup2 || []).slice(), sup3: (f.sup3 || []).slice(), sup4: (f.sup4 || []).slice() };
+    return { sup2: (f.sup2 || []).slice(), sup3: (f.sup3 || []).slice() };
   }
 
   // Each person's forecast schedule lives in its own "schedules/<slug>"
@@ -1029,8 +1020,7 @@ var firebaseAuth = getAuth(firebaseApp);
           var f = (data.foremen && typeof data.foremen === 'object') ? data.foremen : {};
           state.foremen = {
             sup2: Array.isArray(f.sup2) ? f.sup2.filter(function (t) { return typeof t === 'string' && t; }) : [],
-            sup3: Array.isArray(f.sup3) ? f.sup3.filter(function (t) { return typeof t === 'string' && t; }) : [],
-            sup4: Array.isArray(f.sup4) ? f.sup4.filter(function (t) { return typeof t === 'string' && t; }) : []
+            sup3: Array.isArray(f.sup3) ? f.sup3.filter(function (t) { return typeof t === 'string' && t; }) : []
           };
           confirmedNames.sup1Name = state.sup1Name;
           confirmedNames.sup2Name = state.sup2Name;
@@ -1121,7 +1111,7 @@ var firebaseAuth = getAuth(firebaseApp);
     lastWriteError = '';
     authReady.then(function () {
       enqueueWrite(function () {
-        return updateDoc(docRef, { foremen: { sup2: [], sup3: [], sup4: [] } }).catch(function (err) { handleWriteError(err); });
+        return updateDoc(docRef, { foremen: { sup2: [], sup3: [] } }).catch(function (err) { handleWriteError(err); });
       });
     });
   }
@@ -1547,7 +1537,7 @@ var firebaseAuth = getAuth(firebaseApp);
     els.calendarNextBtn.addEventListener('click', function () { shiftCalendarMonth(1); });
     els.calendarTodayBtn.addEventListener('click', resetCalendarToToday);
 
-    ['sup2', 'sup3', 'sup4'].forEach(function (supKey) {
+    ['sup2', 'sup3'].forEach(function (supKey) {
       var submitForeman = function (e) {
         if (e) e.preventDefault();
         var input = els.foremanInput[supKey];
@@ -1568,11 +1558,11 @@ var firebaseAuth = getAuth(firebaseApp);
     els.sup5Input = q('sup5Input');
     els.sup6Input = q('sup6Input');
     els.sup7Input = q('sup7Input');
-    els.foremanList = { sup2: q('foremanList-sup2'), sup3: q('foremanList-sup3'), sup4: q('foremanList-sup4') };
-    els.foremanInput = { sup2: q('foremanInput-sup2'), sup3: q('foremanInput-sup3'), sup4: q('foremanInput-sup4') };
-    els.foremanError = { sup2: q('foremanError-sup2'), sup3: q('foremanError-sup3'), sup4: q('foremanError-sup4') };
-    els.addForemanForm = { sup2: q('addForemanForm-sup2'), sup3: q('addForemanForm-sup3'), sup4: q('addForemanForm-sup4') };
-    els.addForemanBtn = { sup2: q('addForemanBtn-sup2'), sup3: q('addForemanBtn-sup3'), sup4: q('addForemanBtn-sup4') };
+    els.foremanList = { sup2: q('foremanList-sup2'), sup3: q('foremanList-sup3') };
+    els.foremanInput = { sup2: q('foremanInput-sup2'), sup3: q('foremanInput-sup3') };
+    els.foremanError = { sup2: q('foremanError-sup2'), sup3: q('foremanError-sup3') };
+    els.addForemanForm = { sup2: q('addForemanForm-sup2'), sup3: q('addForemanForm-sup3') };
+    els.addForemanBtn = { sup2: q('addForemanBtn-sup2'), sup3: q('addForemanBtn-sup3') };
 
     els.datetimeDate = q('datetimeDate');
     els.datetimeClock = q('datetimeClock');
